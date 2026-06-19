@@ -4398,8 +4398,8 @@ static void D3D12_BeginRenderPass(
 
     for (Uint32 i = 0; i < numColorTargets; i += 1) {
         D3D12TextureContainer *container = (D3D12TextureContainer *)colorTargetInfos[i].texture;
-        Uint32 h = container->header.info.height >> colorTargetInfos[i].mip_level;
-        Uint32 w = container->header.info.width >> colorTargetInfos[i].mip_level;
+        Uint32 h = max(1, container->header.info.height >> colorTargetInfos[i].mip_level);
+        Uint32 w = max(1, container->header.info.width >> colorTargetInfos[i].mip_level);
 
         // The framebuffer cannot be larger than the smallest target.
 
@@ -8881,6 +8881,16 @@ static void WINAPI D3D12_INTERNAL_OnD3D12DebugInfoMsg(
         break;
     }
 
+    // filter bothersome messages
+    switch (id)
+    {
+    case D3D12_MESSAGE_ID_CLEARDEPTHSTENCILVIEW_MISMATCHINGCLEARVALUE:
+    case D3D12_MESSAGE_ID_CLEARRENDERTARGETVIEW_MISMATCHINGCLEARVALUE:
+        return;
+    default:
+        break;
+    }
+
     if (severity <= D3D12_MESSAGE_SEVERITY_ERROR) {
         SDL_LogError(
             SDL_LOG_CATEGORY_GPU,
@@ -8913,12 +8923,13 @@ static void D3D12_INTERNAL_TryInitializeD3D12DebugInfoLogger(D3D12Renderer *rend
         return;
     }
 
+    DWORD cookie = 0;
     ID3D12InfoQueue1_RegisterMessageCallback(
         infoQueue,
         D3D12_INTERNAL_OnD3D12DebugInfoMsg,
         D3D12_MESSAGE_CALLBACK_FLAG_NONE,
         NULL,
-        NULL);
+        &cookie);
 
     ID3D12InfoQueue1_Release(infoQueue);
 }
