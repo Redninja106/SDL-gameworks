@@ -3680,7 +3680,8 @@ static D3D12Texture *D3D12_INTERNAL_CreateTexture(
                     uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
                     uavDesc.Texture3D.MipSlice = levelIndex;
                     uavDesc.Texture3D.FirstWSlice = 0;
-                    uavDesc.Texture3D.WSize = depth;
+                    // a mip level holds depth >> level slices
+                    uavDesc.Texture3D.WSize = SDL_max(depth >> levelIndex, 1);
                 } else {
                     uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
                     uavDesc.Texture2D.MipSlice = levelIndex;
