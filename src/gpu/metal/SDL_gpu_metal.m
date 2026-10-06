@@ -4353,7 +4353,9 @@ static bool METAL_PrepareDriver(SDL_VideoDevice *this, SDL_PropertiesID props)
     }
 
     if (@available(macOS 10.14, iOS 13.0, tvOS 13.0, *)) {
-        return (this->Metal_CreateView != NULL);
+        // Gameworks: Metal_CreateView is only needed to claim a window. A video driver without it (offscreen, for
+        // headless tests off the main thread) still gets a device for compute and offscreen rendering.
+        return true;
     }
     return false;
 }
